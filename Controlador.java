@@ -36,9 +36,35 @@ public class Controlador {
         return "Usuario no encontrado.";
     }
 
+    public ArrayList <String> verUsuarios(){
+        ArrayList <String> usarnames = new ArrayList<>();
+        for(Usuario usuario: usuarios){
+            usarnames.add(usuario.getUsername());
+        }
+        return usarnames;
+    }
+
     public boolean esAdministrador() {
         return usuarioActual != null && usuarioActual.getRol().equals("administrador");
     }
 
+    public void crear(){
+        
+    }
 
+    public void editar(){
+
+    }
+
+    public void publicar(){
+
+    }
+
+    public void eliminar(){
+
+    }
+
+    public void reportes(){
+        
+    }
 }

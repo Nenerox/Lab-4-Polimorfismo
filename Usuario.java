@@ -6,6 +6,7 @@ public class Usuario {
     public Usuario(String username, String contraseña, String rol) {
         this.username = username;
         this.contraseña = contraseña;
+        this.rol = rol;
     }
 
     public boolean verificacion(String usaname, String contraseña) {
