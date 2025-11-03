@@ -1,13 +1,18 @@
 public class Articulo extends Contenido implements IPublicable{
     private String cuerpoTexto;
-    private String resumen;
-    private int tiempoLectura;
 
-    public Articulo(int id, String titulo, Usuario creador, String cuerpoTexto, String resumen)
+    public Articulo(int id, String titulo, Usuario creador, String cuerpoTexto, String resumen, String categoria)
     {
-        super(id, titulo, creador);
+        super(id, titulo, creador, categoria);
         this.cuerpoTexto = cuerpoTexto;
-        this.resumen = resumen;
-        this.tiempoLectura = calcularTiempoLectura(cuerpoTexto);
+    }
+    @Override
+    public String publicar()
+    {
+        return "Se ha publicado tu Artículo con título " + titulo + ", y ID: " + id;
+    }
+    public String visualizar()
+    {
+        return cuerpoTexto;
     }
 }

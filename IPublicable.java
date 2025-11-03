@@ -1,4 +1,4 @@
 public interface IPublicable {
-    public void publicar();
-    public void visualizar();
+    public String publicar();
+    public String visualizar();
 }

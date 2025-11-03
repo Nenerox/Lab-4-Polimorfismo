@@ -1,24 +1,30 @@
 public abstract class Contenido{
+
     protected int id;
     protected String titulo;
-    protected String fechaCreacion;
     protected Usuario creador;
-    protected String estado;
+    protected String categoria;
     
-    public Contenido(int id, String titulo, Usuario creador, String fechaCreacion) {
+    public Contenido(int id, String titulo, Usuario creador, String categoria) {
         this.id = id;
         this.titulo = titulo;
         this.creador = creador;
-        this.fechaCreacion = fechaCreacion;
-        this.estado = "Borrador";       
+        this.categoria = categoria;
     }
     public String getTitulo()
     {
         return titulo;
     }
-    public void setTitulo(String nuevoTitulo)
+    public Usuario getCreador()
     {
-        this.titulo = nuevoTitulo;
+        return creador;
     }
-    
+    public int getID()
+    {
+        return id;
+    }
+    public String getCategoria()
+    {
+        return categoria;
+    }
 }
