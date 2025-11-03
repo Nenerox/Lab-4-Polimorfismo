@@ -15,4 +15,8 @@ public class Articulo extends Contenido implements IPublicable{
     {
         return cuerpoTexto;
     }
+    public void editar(String nuevoContenido)
+    {
+        cuerpoTexto = nuevoContenido;
+    }
 }
