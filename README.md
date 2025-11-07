@@ -19,19 +19,6 @@ Sistema de categorías para organización
 
 Contenidos publicados vs no publicados
 
-🔍 Funcionalidades Adicionales
-Búsqueda y filtrado por categoría y tipo
-
-Generación de reportes y estadísticas
-
-Interfaz de consola intuitiva
-
-Tecnologías
-Java
-
-Programación Orientada a Objetos (POO)
-
-Patrón MVC (Modelo-Vista-Controlador)
 Funcionalidades por Rol
 👨‍💼 Administrador
 Gestionar todos los contenidos
@@ -44,11 +31,5 @@ Ver reportes completos
 
 ✏️ Editor
 Crear y editar contenidos
-
-Publicar contenidos
-
-Eliminar solo contenidos no publicados
-
-Ver reportes básicos
 
 Creadores: Andrés Pineda y Miguel Sajquín
