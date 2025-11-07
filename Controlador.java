@@ -11,9 +11,7 @@ public class Controlador {
 
     public Controlador() {
         this.vista = new Vista(this);
-        // Usuarios por defecto del sistema
-        usuarios.add(new Usuario("admin", "admin123", "administrador"));
-        usuarios.add(new Usuario("editor", "editor123", "editor"));
+            usuarios.add(new Usuario("admin", "admin123", "administrador"));
     }
 
     // Punto de entrada principal de la aplicación
@@ -75,10 +73,9 @@ public class Controlador {
     // Maneja el menú después del login
     private boolean procesarMenuUsuario() {
         boolean enSesion = true;
-        
+    
         while (enSesion) {
             int opcion = vista.mostrarMenuUsuario(esAdministrador());
-            
             switch (opcion) {
                 case 1:
                     procesarGestionContenidos();
@@ -90,18 +87,22 @@ public class Controlador {
                     if (esAdministrador()) {
                         procesarGestionUsuarios();
                     } else {
-                        vista.mostrarError("Opción no válida");
+                        // Para editores, el case 3 es "Cerrar sesión"
+                        vista.mostrarMensaje("Sesión cerrada");
+                        usuarioActual = null;
+                        enSesion = false;
                     }
                     break;
                 case 4:
+                // Solo administradores llegan aquí
                     vista.mostrarMensaje("Sesión cerrada");
                     usuarioActual = null;
                     enSesion = false;
                     break;
                 default:
                     vista.mostrarError("Opción no válida");
+                }
             }
-        }
         return true;
     }
 

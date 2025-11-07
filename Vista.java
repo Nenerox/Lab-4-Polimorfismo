@@ -61,7 +61,7 @@ public class Vista {
             System.out.println("3. Gestionar usuarios");
             System.out.println("4. Cerrar sesión");
         } else {
-            System.out.println("3. Cerrar sesión (4 si eres editor)");
+            System.out.println("3. Cerrar sesión");
         }
         System.out.print("Seleccione una opción: ");
         return scanner.nextInt();
@@ -92,7 +92,9 @@ public class Vista {
         System.out.println("2. Eliminar usuario");
         System.out.println("3. Volver");
         System.out.print("Seleccione una opción: ");
-        return scanner.nextInt();
+        int opcion = scanner.nextInt();
+        scanner.nextLine();
+        return opcion;
     }
 
     // Métodos para solicitar datos de contenido
