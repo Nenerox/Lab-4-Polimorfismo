@@ -1,20 +1,161 @@
-
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Controlador {
-    private ArrayList <Usuario> usuarios = new ArrayList<>();
-    private ArrayList <Contenido> contenidos = new ArrayList<>();
-    private ArrayList <Contenido> publicados = new ArrayList<>();
+    private ArrayList<Usuario> usuarios = new ArrayList<>();
+    private ArrayList<Contenido> contenidos = new ArrayList<>();
+    private ArrayList<Contenido> publicados = new ArrayList<>();
     private Usuario usuarioActual;
     private int IDContenido = 1;
+    private Vista vista;
 
     public Controlador() {
-        //usuarios por defecto
-        usuarios.add(new Usuario("admin", "admin123", "administrador"));
-        usuarios.add(new Usuario("editor", "editor123", "editor"));
+        this.vista = new Vista(this);
     }
 
-//verifica que los datos de login sean correctos
+    public void iniciarAplicacion() {
+        vista.mostrarBienvenida();
+        boolean ejecutando = true;
+        
+        while (ejecutando) {
+            ejecutando = procesarMenuPrincipal();
+        }
+        
+        vista.mostrarDespedida();
+    }
+
+    private boolean procesarMenuPrincipal() {
+        int opcion = vista.mostrarMenuPrincipal();
+        
+        switch (opcion) {
+            case 1:
+                return procesarLogin();
+            case 2:
+                procesarRegistro();
+                return true;
+            case 3:
+                return false;
+            default:
+                vista.mostrarError("Opción no válida");
+                return true;
+        }
+    }
+
+    private boolean procesarLogin() {
+        String[] credenciales = vista.solicitarCredenciales();
+        String resultado = autenticar(credenciales[0], credenciales[1]);
+        vista.mostrarMensaje(resultado);
+
+        if (resultado.contains("Bienvenido")) {
+            return procesarMenuUsuario();
+        }
+        return true;
+    }
+
+    private void procesarRegistro() {
+        String[] datosRegistro = vista.solicitarDatosRegistro();
+        
+        // Validar rol
+        if (!datosRegistro[2].equals("administrador") && !datosRegistro[2].equals("editor")) {
+            vista.mostrarError("Rol debe ser 'administrador' o 'editor'");
+            return;
+        }
+        
+        String resultado = registrarUsuario(datosRegistro[0], datosRegistro[1], datosRegistro[2]);
+        vista.mostrarMensaje(resultado);
+    }
+
+    private boolean procesarMenuUsuario() {
+        boolean enSesion = true;
+        
+        while (enSesion) {
+            int opcion = vista.mostrarMenuUsuario(esAdministrador());
+            
+            switch (opcion) {
+                case 1:
+                    procesarGestionContenidos();
+                    break;
+                case 2:
+                    generarReportes();
+                    break;
+                case 3:
+                    if (esAdministrador()) {
+                        procesarGestionUsuarios();
+                    } else {
+                        vista.mostrarError("Opción no válida");
+                    }
+                    break;
+                case 4:
+                    vista.mostrarMensaje("Sesión cerrada");
+                    usuarioActual = null;
+                    enSesion = false;
+                    break;
+                default:
+                    vista.mostrarError("Opción no válida");
+            }
+        }
+        return true;
+    }
+
+    private void procesarGestionContenidos() {
+        boolean enGestion = true;
+        
+        while (enGestion) {
+            int opcion = vista.mostrarMenuGestionContenidos(esAdministrador());
+            
+            switch (opcion) {
+                case 1:
+                    crearContenido();
+                    break;
+                case 2:
+                    editarContenido();
+                    break;
+                case 3:
+                    publicarContenido();
+                    break;
+                case 4:
+                    eliminarContenido();
+                    break;
+                case 5:
+                    visualizarContenido();
+                    break;
+                case 6:
+                    filtrarContenidos();
+                    break;
+                case 7:
+                    enGestion = false;
+                    break;
+                default:
+                    vista.mostrarError("Opción no válida");
+            }
+        }
+    }
+
+    private void procesarGestionUsuarios() {
+        if (!esAdministrador()) return;
+        
+        boolean enGestion = true;
+        
+        while (enGestion) {
+            int opcion = vista.mostrarMenuGestionUsuarios();
+            
+            switch (opcion) {
+                case 1:
+                    vista.mostrarUsuarios(verUsuarios());
+                    break;
+                case 2:
+                    eliminarUsuarioInterfaz();
+                    break;
+                case 3:
+                    enGestion = false;
+                    break;
+                default:
+                    vista.mostrarError("Opción no válida");
+            }
+        }
+    }
+
+    // MÉTODOS DE AUTENTICACIÓN Y USUARIOS (sin cambios)
     public String autenticar(String username, String contraseña) {
         for (Usuario usuario : usuarios) {
             if (usuario.verificacion(username, contraseña)) {
@@ -31,106 +172,180 @@ public class Controlador {
     }
 
     public String eliminarUsuario(String username) {
-        for (Usuario usuario : usuarios) {
+        Iterator<Usuario> iterator = usuarios.iterator();
+        while (iterator.hasNext()) {
+            Usuario usuario = iterator.next();
             if (usuario.getUsername().equals(username)) {
-                usuarios.remove(usuario);
+                iterator.remove();
                 return "Usuario " + username + " eliminado.";
             }
         }
         return "Usuario no encontrado.";
     }
 
-//regresa una lista de usernames de los usuarios registrados
-    public ArrayList <String> verUsuarios(){
-        ArrayList <String> usarnames = new ArrayList<>();
-        for(Usuario usuario: usuarios){
-            usarnames.add(usuario.getUsername());
-        }
-        return usarnames;
+    private void eliminarUsuarioInterfaz() {
+        String username = vista.solicitarUsernameEliminar();
+        String resultado = eliminarUsuario(username);
+        vista.mostrarMensaje(resultado);
     }
 
-//verifica si el usuario actual es administrador
+    public ArrayList<String> verUsuarios() {
+        ArrayList<String> usuariosInfo = new ArrayList<>();
+        for (Usuario usuario : usuarios) {
+            usuariosInfo.add(usuario.getUsername() + " - " + usuario.getRol());
+        }
+        return usuariosInfo;
+    }
+
     public boolean esAdministrador() {
         return usuarioActual != null && usuarioActual.getRol().equals("administrador");
     }
 
-//crea contenido segun el tipo 1-Articulo, 2-Imagen, 3-Video y lo agrega a la lista de contenidos no publicados
-    public String crear(int tipo, String titulo, String contenido, String resumen, String categoria){
+    // MÉTODOS DE CONTENIDO (sin cambios)
+    public String crear(int tipo, String titulo, String contenido, String resumen, String categoria) {
         if (tipo == 1) {
-            contenidos.add(new Articulo(IDContenido, titulo , usuarioActual, contenido, resumen, categoria));
-            return "Contenido con ID " + IDContenido + ", titulo: " + titulo + " creado.";
+            contenidos.add(new Articulo(IDContenido, titulo, usuarioActual, contenido, resumen, categoria));
+            IDContenido++;
+            return "Contenido con ID " + (IDContenido - 1) + ", titulo: " + titulo + " creado.";
         } else if (tipo == 2) {
-            contenidos.add(new Imagen(IDContenido, titulo , usuarioActual, contenido, resumen, categoria));
-            return "Contenido con ID " + IDContenido + ", titulo: " + titulo + " creado.";
+            contenidos.add(new Imagen(IDContenido, titulo, usuarioActual, contenido, resumen, categoria));
+            IDContenido++;
+            return "Contenido con ID " + (IDContenido - 1) + ", titulo: " + titulo + " creado.";
         } else if (tipo == 3) {
-            contenidos.add(new Video(IDContenido, titulo , usuarioActual, contenido, resumen, categoria));
-            return "Contenido con ID " + IDContenido + ", titulo: " + titulo + " creado.";
+            contenidos.add(new Video(IDContenido, titulo, usuarioActual, contenido, resumen, categoria));
+            IDContenido++;
+            return "Contenido con ID " + (IDContenido - 1) + ", titulo: " + titulo + " creado.";
         } else {
             return "Tipo de contenido no válido.";
         }
     }
 
-//edita contenido por ID si no ha sido publicado
-    public String editar(int ID, String nuevoContenido){
+    private void crearContenido() {
+        Object[] datosContenido = vista.solicitarDatosContenido();
+        String resultado = crear((Integer) datosContenido[0], (String) datosContenido[1], 
+                                (String) datosContenido[2], (String) datosContenido[3], 
+                                (String) datosContenido[4]);
+        vista.mostrarMensaje(resultado);
+    }
+
+    public String editar(int ID, String nuevoContenido) {
         for (Contenido c : contenidos) {
-            if (c.getID() ==  ID) {
+            if (c.getID() == ID) {
                 ((IPublicable) c).editar(nuevoContenido);
                 return "Contenido con ID " + ID + ", titulo: " + c.getTitulo() + " editado.";
             }
         }
         for (Contenido c : publicados) {
-            if (c.getID() ==  ID) {
+            if (c.getID() == ID) {
                 return "No se puede editar un contenido ya publicado.";
             }
-            
         }
         return "Contenido no encontrado.";
     }
 
-//publica contenido por ID y lo mueve a la lista de publicados
-    public String publicar(int ID){
+    private void editarContenido() {
+        int id = vista.solicitarIDContenido("editar");
+        String nuevoContenido = vista.solicitarNuevoContenido();
+        String resultado = editar(id, nuevoContenido);
+        vista.mostrarMensaje(resultado);
+    }
+
+    public String publicar(int ID) {
         for (Contenido c : contenidos) {
-            if (c.getID() ==  ID) {
+            if (c.getID() == ID) {
                 publicados.add(c);
                 contenidos.remove(c);
-                return(((IPublicable) c).publicar());
+                return ((IPublicable) c).publicar();
             }
         }
         return "Contenido no encontrado.";
     }
 
-//elimina contenido por ID ya sea publicado o no
-    public String eliminar(int ID){
+    private void publicarContenido() {
+        int id = vista.solicitarIDContenido("publicar");
+        String resultado = publicar(id);
+        vista.mostrarMensaje(resultado);
+    }
+
+    public String eliminar(int ID) {
         for (Contenido c : contenidos) {
-            if (c.getID() ==  ID) {
+            if (c.getID() == ID) {
                 contenidos.remove(c);
                 return "Contenido con ID " + ID + ", titulo: " + c.getTitulo() + " eliminado.";
             }
         }
         for (Contenido c : publicados) {
-            if (c.getID() ==  ID) {
+            if (c.getID() == ID) {
                 publicados.remove(c);
                 return "Contenido con ID " + ID + ", titulo: " + c.getTitulo() + " eliminado.";
             }
-            
         }
         return "Contenido no encontrado.";
     }
 
-//Resumenes de los contenidos publicados
-    public int CantidadPublicaods(){
+    private void eliminarContenido() {
+        int id = vista.solicitarIDContenido("eliminar");
+        if (!esAdministrador()) {
+            vista.mostrarMensaje("Nota: Como editor, solo puedes eliminar contenidos no publicados");
+        }
+        String resultado = eliminar(id);
+        vista.mostrarMensaje(resultado);
+    }
+
+    private void visualizarContenido() {
+        int id = vista.solicitarIDContenido("visualizar");
+        String resultado = visualizar(id);
+        vista.mostrarMensaje(resultado);
+    }
+
+    public String visualizar(int ID) {
+        for (Contenido c : publicados) {
+            if (c.getID() == ID) {
+                return "ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername() + "\nContenido: " + ((IPublicable) c).visualizar();
+            }
+        }
+        return "Contenido no encontrado.";
+    }
+
+    private void filtrarContenidos() {
+        Object[] filtro = vista.solicitarFiltro();
+        ArrayList<String> resultados = new ArrayList<>();
+        
+        int tipoFiltro = (Integer) filtro[0];
+        String valor = (String) filtro[1];
+        
+        switch (tipoFiltro) {
+            case 1:
+                resultados = filtroCategoriaPublicados(valor);
+                break;
+            case 2:
+                resultados = filtroCategoriaNoPublicados(valor);
+                break;
+            case 3:
+                resultados = filtroTipoPublicados(valor);
+                break;
+            case 4:
+                resultados = filtoTipoNoPublicados(valor);
+                break;
+        }
+        
+        vista.mostrarResultadosFiltro(resultados);
+    }
+
+    // MÉTODOS DE REPORTES Y FILTROS (sin cambios)
+    public int CantidadPublicados() {
         return publicados.size();
     }
 
-    public ArrayList <String> listarPublicados() {
-        ArrayList <String> lista = new ArrayList<>();
+    public ArrayList<String> listarPublicados() {
+        ArrayList<String> lista = new ArrayList<>();
         for (Contenido c : publicados) {
             lista.add("ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername());
         }
         return lista;
     }
 
-    public String CantidadPorContenido(){
+    public String CantidadPorContenido() {
         int articulos = 0;
         int imagenes = 0;
         int videos = 0;
@@ -145,9 +360,9 @@ public class Controlador {
         }
         return "Artículos: " + articulos + ", Imágenes: " + imagenes + ", Videos: " + videos;
     }
-//Resumen de los tipos de categorias de los contenidos publicados, regresa una lista de strings de las categorias
-    public ArrayList <String> TiposDeCategorias(){
-        ArrayList <String> categorias = new ArrayList<>();
+
+    public ArrayList<String> TiposDeCategorias() {
+        ArrayList<String> categorias = new ArrayList<>();
         for (Contenido c : publicados) {
             if (!categorias.contains(c.getCategoria())) {
                 categorias.add(c.getCategoria());
@@ -156,9 +371,8 @@ public class Controlador {
         return categorias;
     }
 
-//Filtrar por categoria los publicados y no publicados y regresa una lista de strings con la info
-    public ArrayList <String> filtroCategoriaPublicados(String categoria) {
-        ArrayList <String> filtro = new ArrayList<>();
+    public ArrayList<String> filtroCategoriaPublicados(String categoria) {
+        ArrayList<String> filtro = new ArrayList<>();
         for (Contenido c : publicados) {
             if (c.getCategoria().equals(categoria)) {
                 filtro.add("ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername());
@@ -167,8 +381,8 @@ public class Controlador {
         return filtro;
     }
 
-    public ArrayList <String> filtroCategoriaNoPublicados(String categoria) {
-        ArrayList <String> filtro = new ArrayList<>();
+    public ArrayList<String> filtroCategoriaNoPublicados(String categoria) {
+        ArrayList<String> filtro = new ArrayList<>();
         for (Contenido c : contenidos) {
             if (c.getCategoria().equals(categoria)) {
                 filtro.add("ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername());
@@ -176,9 +390,9 @@ public class Controlador {
         }
         return filtro;
     }
-//Filtrar por tipo los publicados y no publicados y regresa una lista de strings con la info
-    public ArrayList <String> filtroTipoPublicados(String tipo) {
-        ArrayList <String> filtro = new ArrayList<>();
+
+    public ArrayList<String> filtroTipoPublicados(String tipo) {
+        ArrayList<String> filtro = new ArrayList<>();
         for (Contenido c : publicados) {
             if ((tipo.equals("Articulo") && c instanceof Articulo) ||
                 (tipo.equals("Imagen") && c instanceof Imagen) ||
@@ -189,25 +403,19 @@ public class Controlador {
         return filtro;
     }
 
-    public ArrayList <String> filtoTipoNoPublicados(String categoria) {
-        ArrayList <String> filtro = new ArrayList<>();
+    public ArrayList<String> filtoTipoNoPublicados(String tipo) {
+        ArrayList<String> filtro = new ArrayList<>();
         for (Contenido c : contenidos) {
-            if ((categoria.equals("Articulo") && c instanceof Articulo) ||
-                (categoria.equals("Imagen") && c instanceof Imagen) ||
-                (categoria.equals("Video") && c instanceof Video)) {
+            if ((tipo.equals("Articulo") && c instanceof Articulo) ||
+                (tipo.equals("Imagen") && c instanceof Imagen) ||
+                (tipo.equals("Video") && c instanceof Video)) {
                 filtro.add("ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername());
             }
         }
         return filtro;
     }
 
-//visualizar contenido por ID
-    public String visualizar(int ID) {
-        for (Contenido c : publicados) {
-            if (c.getID() ==  ID) {
-                return ("ID: " + c.getID() + ", Título: " + c.getTitulo() + ", Creador: " + c.getCreador().getUsername() + "\nContenido: " + ((IPublicable) c).visualizar());
-            }
-        }
-        return "Contenido no encontrado.";
+    private void generarReportes() {
+        vista.mostrarReportes(CantidadPublicados(), CantidadPorContenido(), listarPublicados(), TiposDeCategorias());
     }
 }

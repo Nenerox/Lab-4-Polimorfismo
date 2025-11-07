@@ -5,65 +5,40 @@ public class Vista {
     private Controlador controlador;
     private Scanner scanner;
 
-    public Vista() {
-        this.controlador = new Controlador();
+    public Vista(Controlador controlador) {
+        this.controlador = controlador;
         this.scanner = new Scanner(System.in);
     }
 
-    public void iniciar() {
+    public void mostrarBienvenida() {
         System.out.println("=== SISTEMA DE GESTIÓN DE CONTENIDOS ===");
-        
-        while (true) {
-            if (!mostrarMenuPrincipal()) {
-                break;
-            }
-        }
-        
-        scanner.close();
     }
 
-    private boolean mostrarMenuPrincipal() {
+    public void mostrarDespedida() {
+        System.out.println("¡Hasta pronto!");
+    }
+
+    public int mostrarMenuPrincipal() {
         System.out.println("\n--- MENÚ PRINCIPAL ---");
         System.out.println("1. Iniciar sesión");
         System.out.println("2. Registrarse");
         System.out.println("3. Salir");
         System.out.print("Seleccione una opción: ");
-        
-        int opcion = scanner.nextInt();
-        scanner.nextLine(); // Limpiar buffer
-
-        switch (opcion) {
-            case 1:
-                return iniciarSesion();
-            case 2:
-                registrarUsuario();
-                return true;
-            case 3:
-                System.out.println("¡Hasta pronto!");
-                return false;
-            default:
-                System.out.println("Opción no válida");
-                return true;
-        }
+        return scanner.nextInt();
     }
 
-    private boolean iniciarSesion() {
+    public String[] solicitarCredenciales() {
+        scanner.nextLine(); // Limpiar buffer
         System.out.println("\n--- INICIAR SESIÓN ---");
         System.out.print("Usuario: ");
         String username = scanner.nextLine();
         System.out.print("Contraseña: ");
         String contraseña = scanner.nextLine();
-
-        String resultado = controlador.autenticar(username, contraseña);
-        System.out.println(resultado);
-
-        if (resultado.contains("Bienvenido")) {
-            return mostrarMenuUsuario();
-        }
-        return true;
+        return new String[]{username, contraseña};
     }
 
-    private void registrarUsuario() {
+    public String[] solicitarDatosRegistro() {
+        scanner.nextLine(); // Limpiar buffer
         System.out.println("\n--- REGISTRAR USUARIO ---");
         System.out.print("Usuario: ");
         String username = scanner.nextLine();
@@ -71,89 +46,51 @@ public class Vista {
         String contraseña = scanner.nextLine();
         System.out.print("Rol (administrador/editor): ");
         String rol = scanner.nextLine();
-
-        String resultado = controlador.registrarUsuario(username, contraseña, rol);
-        System.out.println(resultado);
+        return new String[]{username, contraseña, rol};
     }
 
-    private boolean mostrarMenuUsuario() {
-        while (true) {
-            System.out.println("\n--- MENÚ DE USUARIO ---");
-            System.out.println("1. Gestionar contenidos");
-            System.out.println("2. Ver reportes");
-            System.out.println("3. Ver usuarios (solo admin)");
+    public int mostrarMenuUsuario(boolean esAdministrador) {
+        System.out.println("\n--- MENÚ DE USUARIO ---");
+        System.out.println("1. Gestionar contenidos");
+        System.out.println("2. Ver reportes");
+        if (esAdministrador) {
+            System.out.println("3. Gestionar usuarios");
             System.out.println("4. Cerrar sesión");
-            System.out.print("Seleccione una opción: ");
-
-            int opcion = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (opcion) {
-                case 1:
-                    gestionarContenidos();
-                    break;
-                case 2:
-                    verReportes();
-                    break;
-                case 3:
-                    if (controlador.esAdministrador()) {
-                        verUsuarios();
-                    } else {
-                        System.out.println("No tienes permisos de administrador");
-                    }
-                    break;
-                case 4:
-                    System.out.println("Sesión cerrada");
-                    return true;
-                default:
-                    System.out.println("Opción no válida");
-            }
+        } else {
+            System.out.println("3. Cerrar sesión");
         }
+        System.out.print("Seleccione una opción: ");
+        return scanner.nextInt();
     }
 
-    private void gestionarContenidos() {
-        while (true) {
-            System.out.println("\n--- GESTIÓN DE CONTENIDOS ---");
-            System.out.println("1. Crear contenido");
-            System.out.println("2. Editar contenido");
-            System.out.println("3. Publicar contenido");
+    public int mostrarMenuGestionContenidos(boolean esAdministrador) {
+        System.out.println("\n--- GESTIÓN DE CONTENIDOS ---");
+        System.out.println("1. Crear contenido");
+        System.out.println("2. Editar contenido");
+        System.out.println("3. Publicar contenido");
+        if (esAdministrador) {
             System.out.println("4. Eliminar contenido");
-            System.out.println("5. Visualizar contenido");
-            System.out.println("6. Filtrar contenidos");
-            System.out.println("7. Volver");
-            System.out.print("Seleccione una opción: ");
-
-            int opcion = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (opcion) {
-                case 1:
-                    crearContenido();
-                    break;
-                case 2:
-                    editarContenido();
-                    break;
-                case 3:
-                    publicarContenido();
-                    break;
-                case 4:
-                    eliminarContenido();
-                    break;
-                case 5:
-                    visualizarContenido();
-                    break;
-                case 6:
-                    filtrarContenidos();
-                    break;
-                case 7:
-                    return;
-                default:
-                    System.out.println("Opción no válida");
-            }
+        } else {
+            System.out.println("4. Eliminar contenido (solo no publicados)");
         }
+        System.out.println("5. Visualizar contenido");
+        System.out.println("6. Filtrar contenidos");
+        System.out.println("7. Volver");
+        System.out.print("Seleccione una opción: ");
+        return scanner.nextInt();
     }
 
-    private void crearContenido() {
+    public int mostrarMenuGestionUsuarios() {
+        System.out.println("\n--- GESTIÓN DE USUARIOS (Admin) ---");
+        System.out.println("1. Ver usuarios registrados");
+        System.out.println("2. Eliminar usuario");
+        System.out.println("3. Volver");
+        System.out.print("Seleccione una opción: ");
+        return scanner.nextInt();
+    }
+
+    public Object[] solicitarDatosContenido() {
+        scanner.nextLine(); // Limpiar buffer
         System.out.println("\n--- CREAR CONTENIDO ---");
         System.out.println("1. Artículo");
         System.out.println("2. Imagen");
@@ -171,53 +108,27 @@ public class Vista {
         System.out.print("Categoría: ");
         String categoria = scanner.nextLine();
 
-        String resultado = controlador.crear(tipo, titulo, contenido, resumen, categoria);
-        System.out.println(resultado);
+        return new Object[]{tipo, titulo, contenido, resumen, categoria};
     }
 
-    private void editarContenido() {
-        System.out.println("\n--- EDITAR CONTENIDO ---");
-        System.out.print("ID del contenido a editar: ");
+    public int solicitarIDContenido(String accion) {
+        System.out.print("ID del contenido a " + accion + ": ");
         int id = scanner.nextInt();
         scanner.nextLine();
+        return id;
+    }
+
+    public String solicitarNuevoContenido() {
         System.out.print("Nuevo contenido/URL: ");
-        String nuevoContenido = scanner.nextLine();
-
-        String resultado = controlador.editar(id, nuevoContenido);
-        System.out.println(resultado);
+        return scanner.nextLine();
     }
 
-    private void publicarContenido() {
-        System.out.println("\n--- PUBLICAR CONTENIDO ---");
-        System.out.print("ID del contenido a publicar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-
-        String resultado = controlador.publicar(id);
-        System.out.println(resultado);
+    public String solicitarUsernameEliminar() {
+        System.out.print("Usuario a eliminar: ");
+        return scanner.nextLine();
     }
 
-    private void eliminarContenido() {
-        System.out.println("\n--- ELIMINAR CONTENIDO ---");
-        System.out.print("ID del contenido a eliminar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-
-        String resultado = controlador.eliminar(id);
-        System.out.println(resultado);
-    }
-
-    private void visualizarContenido() {
-        System.out.println("\n--- VISUALIZAR CONTENIDO ---");
-        System.out.print("ID del contenido a visualizar: ");
-        int id = scanner.nextInt();
-        scanner.nextLine();
-
-        String resultado = controlador.visualizar(id);
-        System.out.println(resultado);
-    }
-
-    private void filtrarContenidos() {
+    public Object[] solicitarFiltro() {
         System.out.println("\n--- FILTRAR CONTENIDOS ---");
         System.out.println("1. Por categoría (publicados)");
         System.out.println("2. Por categoría (no publicados)");
@@ -227,34 +138,43 @@ public class Vista {
         int opcion = scanner.nextInt();
         scanner.nextLine();
 
-        ArrayList<String> resultados = new ArrayList<>();
-        
+        String valor = "";
         switch (opcion) {
             case 1:
-                System.out.print("Categoría: ");
-                String categoria = scanner.nextLine();
-                resultados = controlador.filtroCategoriaPublicados(categoria);
-                break;
             case 2:
                 System.out.print("Categoría: ");
-                categoria = scanner.nextLine();
-                resultados = controlador.filtroCategoriaNoPublicados(categoria);
+                valor = scanner.nextLine();
                 break;
             case 3:
-                System.out.print("Tipo (Articulo/Imagen/Video): ");
-                String tipo = scanner.nextLine();
-                resultados = controlador.filtroTipoPublicados(tipo);
-                break;
             case 4:
                 System.out.print("Tipo (Articulo/Imagen/Video): ");
-                tipo = scanner.nextLine();
-                resultados = controlador.filtoTipoNoPublicados(tipo);
+                valor = scanner.nextLine();
                 break;
-            default:
-                System.out.println("Opción no válida");
-                return;
         }
 
+        return new Object[]{opcion, valor};
+    }
+
+    public void mostrarMensaje(String mensaje) {
+        System.out.println(mensaje);
+    }
+
+    public void mostrarError(String error) {
+        System.out.println("Error: " + error);
+    }
+
+    public void mostrarUsuarios(ArrayList<String> usuarios) {
+        System.out.println("\n--- USUARIOS REGISTRADOS ---");
+        if (usuarios.isEmpty()) {
+            System.out.println("No hay usuarios registrados");
+        } else {
+            for (String usuario : usuarios) {
+                System.out.println("- " + usuario);
+            }
+        }
+    }
+
+    public void mostrarResultadosFiltro(ArrayList<String> resultados) {
         System.out.println("\nResultados del filtro:");
         if (resultados.isEmpty()) {
             System.out.println("No se encontraron contenidos");
@@ -265,42 +185,32 @@ public class Vista {
         }
     }
 
-    private void verReportes() {
+    public void mostrarReportes(int totalPublicados, String cantidadPorTipo, 
+                               ArrayList<String> publicados, ArrayList<String> categorias) {
         System.out.println("\n--- REPORTES ---");
-        System.out.println("Total de contenidos publicados: " + controlador.CantidadPublicaods());
-        System.out.println(controlador.CantidadPorContenido());
+        System.out.println("Total de contenidos publicados: " + totalPublicados);
+        System.out.println(cantidadPorTipo);
         
         System.out.println("\nContenidos publicados:");
-        ArrayList<String> publicados = controlador.listarPublicados();
-        for (String contenido : publicados) {
-            System.out.println(contenido);
+        if (publicados.isEmpty()) {
+            System.out.println("No hay contenidos publicados");
+        } else {
+            for (String contenido : publicados) {
+                System.out.println(contenido);
+            }
         }
 
         System.out.println("\nCategorías disponibles:");
-        ArrayList<String> categorias = controlador.TiposDeCategorias();
-        for (String categoria : categorias) {
-            System.out.println("- " + categoria);
+        if (categorias.isEmpty()) {
+            System.out.println("No hay categorías");
+        } else {
+            for (String categoria : categorias) {
+                System.out.println("- " + categoria);
+            }
         }
     }
 
-    private void verUsuarios() {
-        System.out.println("\n--- USUARIOS REGISTRADOS ---");
-        ArrayList<String> usuarios = controlador.verUsuarios();
-        for (String usuario : usuarios) {
-            System.out.println("- " + usuario);
-        }
-
-        System.out.println("\n1. Eliminar usuario");
-        System.out.println("2. Volver");
-        System.out.print("Seleccione opción: ");
-        int opcion = scanner.nextInt();
-        scanner.nextLine();
-
-        if (opcion == 1) {
-            System.out.print("Usuario a eliminar: ");
-            String username = scanner.nextLine();
-            String resultado = controlador.eliminarUsuario(username);
-            System.out.println(resultado);
-        }
+    public void cerrar() {
+        scanner.close();
     }
 }
