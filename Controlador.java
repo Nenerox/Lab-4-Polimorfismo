@@ -11,8 +11,12 @@ public class Controlador {
 
     public Controlador() {
         this.vista = new Vista(this);
+        // Usuarios por defecto del sistema
+        usuarios.add(new Usuario("admin", "admin123", "administrador"));
+        usuarios.add(new Usuario("editor", "editor123", "editor"));
     }
 
+    // Punto de entrada principal de la aplicación
     public void iniciarAplicacion() {
         vista.mostrarBienvenida();
         boolean ejecutando = true;
@@ -24,6 +28,7 @@ public class Controlador {
         vista.mostrarDespedida();
     }
 
+    // Maneja las opciones del menú principal
     private boolean procesarMenuPrincipal() {
         int opcion = vista.mostrarMenuPrincipal();
         
@@ -41,6 +46,7 @@ public class Controlador {
         }
     }
 
+    // Procesa el inicio de sesión de usuarios
     private boolean procesarLogin() {
         String[] credenciales = vista.solicitarCredenciales();
         String resultado = autenticar(credenciales[0], credenciales[1]);
@@ -52,6 +58,7 @@ public class Controlador {
         return true;
     }
 
+    // Procesa el registro de nuevos usuarios
     private void procesarRegistro() {
         String[] datosRegistro = vista.solicitarDatosRegistro();
         
@@ -65,6 +72,7 @@ public class Controlador {
         vista.mostrarMensaje(resultado);
     }
 
+    // Maneja el menú después del login
     private boolean procesarMenuUsuario() {
         boolean enSesion = true;
         
@@ -97,6 +105,7 @@ public class Controlador {
         return true;
     }
 
+    // Gestiona todas las operaciones de contenido
     private void procesarGestionContenidos() {
         boolean enGestion = true;
         
@@ -131,6 +140,7 @@ public class Controlador {
         }
     }
 
+    // Gestiona usuarios (solo administradores)
     private void procesarGestionUsuarios() {
         if (!esAdministrador()) return;
         
@@ -155,7 +165,7 @@ public class Controlador {
         }
     }
 
-    // MÉTODOS DE AUTENTICACIÓN Y USUARIOS (sin cambios)
+    // Autentica usuario con credenciales
     public String autenticar(String username, String contraseña) {
         for (Usuario usuario : usuarios) {
             if (usuario.verificacion(username, contraseña)) {
@@ -166,11 +176,13 @@ public class Controlador {
         return "Credenciales incorrectas";
     }
 
+    // Registra un nuevo usuario en el sistema
     public String registrarUsuario(String username, String contraseña, String rol) {
         usuarios.add(new Usuario(username, contraseña, rol));
         return "Usuario " + username + " registrado con rol: " + rol;
     }
 
+    // Elimina un usuario del sistema
     public String eliminarUsuario(String username) {
         Iterator<Usuario> iterator = usuarios.iterator();
         while (iterator.hasNext()) {
@@ -183,12 +195,14 @@ public class Controlador {
         return "Usuario no encontrado.";
     }
 
+    // Interfaz para eliminar usuario
     private void eliminarUsuarioInterfaz() {
         String username = vista.solicitarUsernameEliminar();
         String resultado = eliminarUsuario(username);
         vista.mostrarMensaje(resultado);
     }
 
+    // Obtiene lista de usuarios registrados
     public ArrayList<String> verUsuarios() {
         ArrayList<String> usuariosInfo = new ArrayList<>();
         for (Usuario usuario : usuarios) {
@@ -197,11 +211,12 @@ public class Controlador {
         return usuariosInfo;
     }
 
+    // Verifica si el usuario actual es administrador
     public boolean esAdministrador() {
         return usuarioActual != null && usuarioActual.getRol().equals("administrador");
     }
 
-    // MÉTODOS DE CONTENIDO (sin cambios)
+    // Crea nuevo contenido según el tipo especificado
     public String crear(int tipo, String titulo, String contenido, String resumen, String categoria) {
         if (tipo == 1) {
             contenidos.add(new Articulo(IDContenido, titulo, usuarioActual, contenido, resumen, categoria));
@@ -220,14 +235,40 @@ public class Controlador {
         }
     }
 
+    // Interfaz para crear contenido
     private void crearContenido() {
-        Object[] datosContenido = vista.solicitarDatosContenido();
-        String resultado = crear((Integer) datosContenido[0], (String) datosContenido[1], 
-                                (String) datosContenido[2], (String) datosContenido[3], 
-                                (String) datosContenido[4]);
+        int tipo = vista.solicitarTipoContenido();
+        String titulo = vista.solicitarTituloContenido();
+        String contenido = vista.solicitarContenido();
+        String resumen = vista.solicitarResumen();
+        String categoria = vista.solicitarCategoria();
+        String resultado = crear(tipo, titulo, contenido, resumen, categoria);
         vista.mostrarMensaje(resultado);
     }
 
+    // Filtra contenidos según criterios especificados
+    private void filtrarContenidos() {
+        int tipoFiltro = vista.solicitarTipoFiltro();
+        String valor = vista.solicitarValorFiltro(tipoFiltro);
+        ArrayList<String> resultados = new ArrayList<>();
+        switch (tipoFiltro) {
+            case 1:
+                resultados = filtroCategoriaPublicados(valor);
+                break;
+            case 2:
+                resultados = filtroCategoriaNoPublicados(valor);
+                break;
+            case 3:
+                resultados = filtroTipoPublicados(valor);
+                break;
+            case 4:
+                resultados = filtoTipoNoPublicados(valor);
+                break;
+            }
+        vista.mostrarResultadosFiltro(resultados);
+    }
+
+    // Edita contenido existente
     public String editar(int ID, String nuevoContenido) {
         for (Contenido c : contenidos) {
             if (c.getID() == ID) {
@@ -243,6 +284,7 @@ public class Controlador {
         return "Contenido no encontrado.";
     }
 
+    // Interfaz para editar contenido
     private void editarContenido() {
         int id = vista.solicitarIDContenido("editar");
         String nuevoContenido = vista.solicitarNuevoContenido();
@@ -250,6 +292,7 @@ public class Controlador {
         vista.mostrarMensaje(resultado);
     }
 
+    // Publica contenido moviéndolo a la lista de publicados
     public String publicar(int ID) {
         for (Contenido c : contenidos) {
             if (c.getID() == ID) {
@@ -261,12 +304,14 @@ public class Controlador {
         return "Contenido no encontrado.";
     }
 
+    // Interfaz para publicar contenido
     private void publicarContenido() {
         int id = vista.solicitarIDContenido("publicar");
         String resultado = publicar(id);
         vista.mostrarMensaje(resultado);
     }
 
+    // Elimina contenido del sistema
     public String eliminar(int ID) {
         for (Contenido c : contenidos) {
             if (c.getID() == ID) {
@@ -283,6 +328,7 @@ public class Controlador {
         return "Contenido no encontrado.";
     }
 
+    // Interfaz para eliminar contenido
     private void eliminarContenido() {
         int id = vista.solicitarIDContenido("eliminar");
         if (!esAdministrador()) {
@@ -292,12 +338,14 @@ public class Controlador {
         vista.mostrarMensaje(resultado);
     }
 
+    // Interfaz para visualizar contenido
     private void visualizarContenido() {
         int id = vista.solicitarIDContenido("visualizar");
         String resultado = visualizar(id);
         vista.mostrarMensaje(resultado);
     }
 
+    // Visualiza contenido publicado
     public String visualizar(int ID) {
         for (Contenido c : publicados) {
             if (c.getID() == ID) {
@@ -307,32 +355,7 @@ public class Controlador {
         return "Contenido no encontrado.";
     }
 
-    private void filtrarContenidos() {
-        Object[] filtro = vista.solicitarFiltro();
-        ArrayList<String> resultados = new ArrayList<>();
-        
-        int tipoFiltro = (Integer) filtro[0];
-        String valor = (String) filtro[1];
-        
-        switch (tipoFiltro) {
-            case 1:
-                resultados = filtroCategoriaPublicados(valor);
-                break;
-            case 2:
-                resultados = filtroCategoriaNoPublicados(valor);
-                break;
-            case 3:
-                resultados = filtroTipoPublicados(valor);
-                break;
-            case 4:
-                resultados = filtoTipoNoPublicados(valor);
-                break;
-        }
-        
-        vista.mostrarResultadosFiltro(resultados);
-    }
-
-    // MÉTODOS DE REPORTES Y FILTROS (sin cambios)
+    // Métodos de reportes y estadísticas
     public int CantidadPublicados() {
         return publicados.size();
     }
@@ -371,6 +394,7 @@ public class Controlador {
         return categorias;
     }
 
+    // Métodos de filtrado
     public ArrayList<String> filtroCategoriaPublicados(String categoria) {
         ArrayList<String> filtro = new ArrayList<>();
         for (Contenido c : publicados) {
@@ -415,6 +439,7 @@ public class Controlador {
         return filtro;
     }
 
+    // Genera y muestra reportes del sistema
     private void generarReportes() {
         vista.mostrarReportes(CantidadPublicados(), CantidadPorContenido(), listarPublicados(), TiposDeCategorias());
     }

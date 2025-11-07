@@ -5,12 +5,15 @@ public abstract class Contenido{
     protected Usuario creador;
     protected String categoria;
     
+    // Constructor
     public Contenido(int id, String titulo, Usuario creador, String categoria) {
         this.id = id;
         this.titulo = titulo;
         this.creador = creador;
         this.categoria = categoria;
     }
+    
+    // Getters
     public String getTitulo()
     {
         return titulo;
