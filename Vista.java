@@ -53,37 +53,49 @@ public class Vista {
     }
 
     // Muestra el menú de usuario según sus permisos
-    public int mostrarMenuUsuario(boolean esAdministrador) {
-        System.out.println("\n--- MENÚ DE USUARIO ---");
+public int mostrarMenuUsuario(boolean esAdministrador) {
+    System.out.println("\n--- MENÚ DE USUARIO ---");
+    
+    if (esAdministrador) {
+        // Menú completo para administradores
         System.out.println("1. Gestionar contenidos");
         System.out.println("2. Ver reportes");
-        if (esAdministrador) {
-            System.out.println("3. Gestionar usuarios");
-            System.out.println("4. Cerrar sesión");
-        } else {
-            System.out.println("3. Cerrar sesión");
-        }
-        System.out.print("Seleccione una opción: ");
-        return scanner.nextInt();
+        System.out.println("3. Gestionar usuarios");
+        System.out.println("4. Cerrar sesión");
+    } else {
+        // Menú limitado para editores (solo gestionar contenidos)
+        System.out.println("1. Gestionar contenidos");
+        System.out.println("2. Cerrar sesión");
     }
+    
+    System.out.print("Seleccione una opción: ");
+    return scanner.nextInt();
+}
 
     // Muestra el menú de gestión de contenidos
-    public int mostrarMenuGestionContenidos(boolean esAdministrador) {
-        System.out.println("\n--- GESTIÓN DE CONTENIDOS ---");
+public int mostrarMenuGestionContenidos(boolean esAdministrador) {
+    System.out.println("\n--- GESTIÓN DE CONTENIDOS ---");
+    
+    if (esAdministrador) {
+        // Menú completo para administradores
         System.out.println("1. Crear contenido");
         System.out.println("2. Editar contenido");
         System.out.println("3. Publicar contenido");
-        if (esAdministrador) {
-            System.out.println("4. Eliminar contenido");
-        } else {
-            System.out.println("4. Eliminar contenido (solo no publicados)");
-        }
+        System.out.println("4. Eliminar contenido");
         System.out.println("5. Visualizar contenido");
         System.out.println("6. Filtrar contenidos");
         System.out.println("7. Volver");
-        System.out.print("Seleccione una opción: ");
-        return scanner.nextInt();
+    } else {
+        // Menú limitado para editores (solo crear y editar)
+        System.out.println("1. Crear contenido");
+        System.out.println("2. Editar contenido");
+        System.out.println("3. Visualizar contenido");
+        System.out.println("4. Volver");
     }
+    
+    System.out.print("Seleccione una opción: ");
+    return scanner.nextInt();
+}
 
     // Muestra el menú de gestión de usuarios (solo administradores)
     public int mostrarMenuGestionUsuarios() {

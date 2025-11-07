@@ -71,11 +71,15 @@ public class Controlador {
     }
 
     // Maneja el menú después del login
-    private boolean procesarMenuUsuario() {
-        boolean enSesion = true;
+private boolean procesarMenuUsuario() {
+    boolean enSesion = true;
+    boolean esAdmin = esAdministrador();
     
-        while (enSesion) {
-            int opcion = vista.mostrarMenuUsuario(esAdministrador());
+    while (enSesion) {
+        int opcion = vista.mostrarMenuUsuario(esAdmin);
+        
+        if (esAdmin) {
+            // Menú completo para administradores
             switch (opcion) {
                 case 1:
                     procesarGestionContenidos();
@@ -84,35 +88,45 @@ public class Controlador {
                     generarReportes();
                     break;
                 case 3:
-                    if (esAdministrador()) {
-                        procesarGestionUsuarios();
-                    } else {
-                        // Para editores, el case 3 es "Cerrar sesión"
-                        vista.mostrarMensaje("Sesión cerrada");
-                        usuarioActual = null;
-                        enSesion = false;
-                    }
+                    procesarGestionUsuarios();
                     break;
                 case 4:
-                // Solo administradores llegan aquí
                     vista.mostrarMensaje("Sesión cerrada");
                     usuarioActual = null;
                     enSesion = false;
                     break;
                 default:
                     vista.mostrarError("Opción no válida");
-                }
             }
-        return true;
+        } else {
+            // Menú limitado para editores
+            switch (opcion) {
+                case 1:
+                    procesarGestionContenidos();
+                    break;
+                case 2:
+                    vista.mostrarMensaje("Sesión cerrada");
+                    usuarioActual = null;
+                    enSesion = false;
+                    break;
+                default:
+                    vista.mostrarError("Opción no válida");
+            }
+        }
     }
+    return true;
+}
 
     // Gestiona todas las operaciones de contenido
-    private void procesarGestionContenidos() {
-        boolean enGestion = true;
+private void procesarGestionContenidos() {
+    boolean enGestion = true;
+    boolean esAdmin = esAdministrador();
+    
+    while (enGestion) {
+        int opcion = vista.mostrarMenuGestionContenidos(esAdmin);
         
-        while (enGestion) {
-            int opcion = vista.mostrarMenuGestionContenidos(esAdministrador());
-            
+        if (esAdmin) {
+            // Menú completo para administradores
             switch (opcion) {
                 case 1:
                     crearContenido();
@@ -138,8 +152,27 @@ public class Controlador {
                 default:
                     vista.mostrarError("Opción no válida");
             }
+        } else {
+            // Menú limitado para editores
+            switch (opcion) {
+                case 1:
+                    crearContenido();
+                    break;
+                case 2:
+                    editarContenido();
+                    break;
+                case 3:
+                    visualizarContenido();
+                    break;
+                case 4:
+                    enGestion = false;
+                    break;
+                default:
+                    vista.mostrarError("Opción no válida");
+            }
         }
     }
+}
 
     // Gestiona usuarios (solo administradores)
     private void procesarGestionUsuarios() {
